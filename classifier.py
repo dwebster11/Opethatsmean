@@ -6,7 +6,7 @@ from io import BytesIO
 
 st.set_page_config(page_title="Text Filter Tool", layout="wide")
 
-st.title("🚫 Text Filter Tool with Exclusion Options")
+st.title("Ope That's Mean!")
 st.write("""
 Upload a CSV and detect rows containing flagged words or phrases.  
 You can manage both flagged and excluded word lists below.
@@ -29,12 +29,12 @@ default_flagged_words = [
     "illegal immigrants", "open borders", "women’s sports", "womens sports", "2028",
     "cum", "socialism", "demorats", "demons", "demonrats", "i’m a republican",
     "i vote republican", "i’m republican", "i voted for republicans", "scumbag",
-    "die", "cunty", "kill yourself", "soros", "leftist", "leftists"
+    "die", "cunty", "kill yourself", "soros", "leftist", "leftists", "whore", "democrap"
 ]
 
 # --- NEW: Default excluded words/emojis ---
 default_excluded_words = [
-    "emphasized", "disliked", "liked", "👍", "loved", "questioned"
+    "emphasized", "disliked", "liked", "👍", "loved", "questioned", "gaza", "genocide", "neoliberal", 
 ]
 
 # --- Sidebar word management ---
@@ -68,7 +68,7 @@ with st.sidebar.expander("🚨 Manage Flagged Words"):
 st.sidebar.write(f"Flagged terms: **{len(st.session_state.flagged_words)}**")
 
 # --- Manage Excluded Words ---
-with st.sidebar.expander("❎ Manage Excluded Words"):
+with st.sidebar.expander("Manage Excluded Words"):
     excluded_text = st.text_area(
         "Edit excluded words/phrases (comma-separated):",
         value=", ".join(st.session_state.excluded_words),
@@ -89,7 +89,7 @@ if uploaded_file:
     df = pd.read_csv(uploaded_file)
     
     if "text" not in df.columns:
-        st.error("❌ CSV must contain a column named 'text'.")
+        st.error("CSV must contain a column named 'text'.")
     else:
         st.success("✅ File uploaded successfully!")
 
@@ -145,4 +145,4 @@ if uploaded_file:
         else:
             st.info("✅ No flagged content found after applying exclusions.")
 else:
-    st.info("⬆️ Upload a CSV file to begin.")
+    st.info("Upload a CSV file to begin.")
