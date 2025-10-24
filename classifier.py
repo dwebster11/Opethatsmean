@@ -39,7 +39,7 @@ default_flagged_words = [
 
 # --- NEW: Default excluded words/emojis ---
 default_excluded_words = [
-    "emphasized", "disliked", "liked", "👍", "loved", "questioned", "gaza", "genocide", "neoliberal", 
+    "emphasized", "disliked", "liked", "👍", "loved", "questioned", "gaza", "genocide", "neoliberal", "reacted", "removed"
 ]
 
 # --- Sidebar word management ---
@@ -68,7 +68,7 @@ with st.sidebar.expander("🚨 Manage Flagged Words"):
     if st.button("Update Flagged List"):
         new_list = [w.strip().lower() for w in flagged_text.split(",") if w.strip()]
         st.session_state.flagged_words = sorted(set(new_list))
-        st.success("✅ Flagged word list updated.")
+        st.success("Flagged word list updated.")
 
 st.sidebar.write(f"Flagged terms: **{len(st.session_state.flagged_words)}**")
 
@@ -83,7 +83,7 @@ with st.sidebar.expander("Manage Excluded Words"):
         new_list = [w.strip().lower() for w in excluded_text.split(",") if w.strip()]
         # Always include the default excluded words no matter what
         st.session_state.excluded_words = sorted(set(new_list + default_excluded_words))
-        st.success("✅ Excluded word list updated.")
+        st.success("Excluded word list updated.")
 
 st.sidebar.write(f"Excluded terms: **{len(st.session_state.excluded_words)}**")
 
