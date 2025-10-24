@@ -39,7 +39,8 @@ default_flagged_words = [
 
 # --- NEW: Default excluded words/emojis ---
 default_excluded_words = [
-    "emphasized", "disliked", "liked", "👍", "loved", "questioned", "gaza", "genocide", "neoliberal", "reacted", "removed"
+    "emphasized", "disliked", "liked", "👍", "loved", "questioned", "gaza", "genocide", 
+    "neoliberal", "reacted", "removed", "Cheney"
 ]
 
 # --- Sidebar word management ---
