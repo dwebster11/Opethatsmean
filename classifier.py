@@ -29,7 +29,12 @@ default_flagged_words = [
     "illegal immigrants", "open borders", "women’s sports", "womens sports", "2028",
     "cum", "socialism", "demorats", "demons", "demonrats", "i’m a republican",
     "i vote republican", "i’m republican", "i voted for republicans", "scumbag",
-    "die", "cunty", "kill yourself", "soros", "leftist", "leftists", "whore", "democrap"
+    "die", "cunty", "kill yourself", "soros", "leftist", "leftists", "whore", "democrap", 
+    "demotard", "anal", "anus", "bastard", "blowjob", "blow job", "buttplug", "cock", "cocks",
+    "coon", "dyke", "fellate", "fudgepacker", "fudge packer", "homo", "homos", "horny", "kike",
+    "muff", "pussy", "pussies", "smegma", "spunk", "whores", "tit", "prick", "pricks", "jizz", 
+    "white power", "sodomize"
+    
 ]
 
 # --- NEW: Default excluded words/emojis ---
