@@ -3,16 +3,12 @@ import pandas as pd
 import re
 import string
 from io import BytesIO
-from transformers import AutoTokenizer, AutoModelForSequenceClassification
-import torch
-import numpy as np
 
 st.set_page_config(page_title="Text Filter Tool", layout="wide")
 
-st.title("🚫 Text Filter Tool with Exclusion Options and Political Scoring")
+st.title("🚫 Text Filter Tool with Exclusion Options")
 st.write("""
 Upload a CSV and detect rows containing flagged words or phrases.  
-Each text is also scored for political leaning (0 = conservative, 1 = liberal).
 You can manage both flagged and excluded word lists below.
 """)
 
@@ -74,34 +70,6 @@ with st.sidebar.expander("❎ Manage Excluded Words"):
 
 st.sidebar.write(f"Excluded terms: **{len(st.session_state.excluded_words)}**")
 
-# --- Political Scoring Setup ---
-@st.cache_resource
-def load_model():
-    # Load pre-trained model and tokenizer (replace with your fine-tuned model)
-    model_name = "distilbert-base-uncased"  # Placeholder; use e.g., "matous-volf/political-leaning-politics" after fine-tuning
-    tokenizer = AutoTokenizer.from_pretrained(model_name)
-    model = AutoModelForSequenceClassification.from_pretrained(model_name, num_labels=1)
-    return tokenizer, model
-
-tokenizer, model = load_model()
-
-def score_political_leaning(texts, batch_size=8):
-    """
-    Predict political leaning score (0=conservative, 1=liberal) for a list of texts.
-    Uses sigmoid to normalize output to [0,1].
-    """
-    scores = []
-    for i in range(0, len(texts), batch_size):
-        batch = texts[i:i + batch_size]
-        inputs = tokenizer(
-            batch, padding=True, truncation=True, max_length=512, return_tensors="pt"
-        )
-        with torch.no_grad():
-            outputs = model(**inputs)
-        batch_scores = torch.sigmoid(outputs.logits).cpu().numpy().flatten()
-        scores.extend(batch_scores)
-    return np.clip(scores, 0, 1)  # Ensure scores are in [0,1]
-
 # --- File upload ---
 uploaded_file = st.file_uploader("📤 Upload a CSV file", type=["csv"])
 
@@ -121,14 +89,6 @@ if uploaded_file:
             return text
 
         df["clean_text"] = df["text"].apply(normalize)
-
-        # --- Political Scoring ---
-        st.write("🔍 Computing political leaning scores (0 = conservative, 1 = liberal)...")
-        texts = df["text"].astype(str).tolist()  # Convert to strings, handle NaN
-        df["political_score"] = score_political_leaning(texts)
-        df["leaning"] = df["political_score"].apply(
-            lambda x: "Conservative" if x < 0.3 else "Liberal" if x > 0.7 else "Moderate"
-        )
 
         # --- Create regex patterns ---
         def build_pattern(word_list):
@@ -154,12 +114,9 @@ if uploaded_file:
         df["contains_flagged"] = df["matched_flagged"].apply(bool)
         df["contains_excluded"] = df["matched_excluded"].apply(bool)
 
-        flagged_df = df[df["contains_flagged"] & ~df["contains_excluded"]][
-            ["text", "political_score", "leaning", "matched_flagged", "matched_excluded"]
-        ]
+        flagged_df = df[df["contains_flagged"] & ~df["contains_excluded"]].drop(columns=["clean_text"])
 
         st.write(f"**Flagged rows found (after exclusions):** {len(flagged_df)}")
-        st.write(f"**Average political score of flagged rows:** {flagged_df['political_score'].mean():.3f}")
 
         if not flagged_df.empty:
             st.dataframe(flagged_df)
@@ -170,7 +127,7 @@ if uploaded_file:
             st.download_button(
                 label="📥 Download Flagged Rows as CSV",
                 data=output.getvalue(),
-                file_name="flagged_texts_with_scores.csv",
+                file_name="flagged_texts_filtered.csv",
                 mime="text/csv"
             )
         else:
