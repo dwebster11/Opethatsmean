@@ -6,7 +6,7 @@ from io import BytesIO
 
 st.set_page_config(page_title="Text Filter Tool", layout="wide")
 
-st.title("Ope That's Mean!")
+st.title("Ope That's Mean! 😢")
 st.write("""
 Upload a CSV and detect rows containing flagged words or phrases.  
 You can manage both flagged and excluded word lists below.
