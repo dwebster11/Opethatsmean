@@ -6,11 +6,14 @@ from io import BytesIO
 
 st.set_page_config(page_title="Text Filter Tool", layout="wide")
 
-st.title("Ope That's Mean")
-st.write("Upload a CSV and detect rows containing flagged words or phrases. You can also modify the flagged list.")
+st.title("🚫 Text Filter Tool with Exclusion Options")
+st.write("""
+Upload a CSV and detect rows containing flagged words or phrases.  
+You can manage both flagged and excluded word lists below.
+""")
 
 # --- Default flagged words/phrases ---
-default_words = [
+default_flagged_words = [
     "retarded", "nigger", "hitler", "retard", "tard", "fucktard", "fuck off",
     "fuck you", "fag", "faggot", "asshole", "ass hole", "bullshit", "cock",
     "cunt", "crap", "cocksucker", "dick", "dickhead", "fucker", "go to hell",
@@ -30,23 +33,42 @@ default_words = [
 ]
 
 # --- Sidebar word management ---
-st.sidebar.header("⚙️ Manage Flagged Words")
+st.sidebar.header("⚙️ Manage Word Lists")
 
+# Initialize session state
 if "flagged_words" not in st.session_state:
-    st.session_state.flagged_words = default_words.copy()
+    st.session_state.flagged_words = default_flagged_words.copy()
 
-with st.sidebar.expander("View or Edit Flagged Words"):
-    words_text = st.text_area(
+if "excluded_words" not in st.session_state:
+    st.session_state.excluded_words = []
+
+# --- Manage Flagged Words ---
+with st.sidebar.expander("🚨 Manage Flagged Words"):
+    flagged_text = st.text_area(
         "Edit flagged words/phrases (comma-separated):",
         value=", ".join(st.session_state.flagged_words),
         height=200
     )
-    if st.button("Update Word List"):
-        new_list = [w.strip().lower() for w in words_text.split(",") if w.strip()]
+    if st.button("Update Flagged List"):
+        new_list = [w.strip().lower() for w in flagged_text.split(",") if w.strip()]
         st.session_state.flagged_words = sorted(set(new_list))
-        st.success("Yay! Word list updated.")
+        st.success("✅ Flagged word list updated.")
 
-st.sidebar.write(f"Total words/phrases: **{len(st.session_state.flagged_words)}**")
+st.sidebar.write(f"Flagged terms: **{len(st.session_state.flagged_words)}**")
+
+# --- Manage Excluded Words ---
+with st.sidebar.expander("❎ Manage Excluded Words"):
+    excluded_text = st.text_area(
+        "Edit excluded words/phrases (comma-separated):",
+        value=", ".join(st.session_state.excluded_words),
+        height=200
+    )
+    if st.button("Update Excluded List"):
+        new_list = [w.strip().lower() for w in excluded_text.split(",") if w.strip()]
+        st.session_state.excluded_words = sorted(set(new_list))
+        st.success("✅ Excluded word list updated.")
+
+st.sidebar.write(f"Excluded terms: **{len(st.session_state.excluded_words)}**")
 
 # --- File upload ---
 uploaded_file = st.file_uploader("📤 Upload a CSV file", type=["csv"])
@@ -68,21 +90,33 @@ if uploaded_file:
 
         df["clean_text"] = df["text"].apply(normalize)
 
-        # Compile regex for faster matching
-        escaped_words = [re.escape(word) for word in st.session_state.flagged_words]
-        pattern = re.compile(r"\b(" + "|".join(escaped_words) + r")\b", flags=re.IGNORECASE)
+        # --- Create regex patterns ---
+        def build_pattern(word_list):
+            if not word_list:
+                return None
+            escaped = [re.escape(w) for w in word_list]
+            return re.compile(r"\b(" + "|".join(escaped) + r")\b", re.IGNORECASE)
 
-        # Identify which words matched
-        def find_matches(text):
+        flagged_pattern = build_pattern(st.session_state.flagged_words)
+        excluded_pattern = build_pattern(st.session_state.excluded_words)
+
+        # --- Identify matches ---
+        def find_matches(text, pattern):
+            if not pattern:
+                return []
             matches = pattern.findall(text)
-            return ", ".join(sorted(set([m.lower() for m in matches]))) if matches else ""
+            return sorted(set([m.lower() for m in matches]))
 
-        df["matched_words"] = df["clean_text"].apply(find_matches)
-        df["contains_flagged"] = df["matched_words"].apply(lambda x: bool(x))
+        df["matched_flagged"] = df["clean_text"].apply(lambda x: find_matches(x, flagged_pattern))
+        df["matched_excluded"] = df["clean_text"].apply(lambda x: find_matches(x, excluded_pattern))
 
-        flagged_df = df[df["contains_flagged"]].drop(columns=["clean_text"])
+        # --- Filter logic ---
+        df["contains_flagged"] = df["matched_flagged"].apply(bool)
+        df["contains_excluded"] = df["matched_excluded"].apply(bool)
 
-        st.write(f"**Flagged rows found:** {len(flagged_df)}")
+        flagged_df = df[df["contains_flagged"] & ~df["contains_excluded"]].drop(columns=["clean_text"])
+
+        st.write(f"**Flagged rows found (after exclusions):** {len(flagged_df)}")
 
         if not flagged_df.empty:
             st.dataframe(flagged_df)
@@ -93,10 +127,10 @@ if uploaded_file:
             st.download_button(
                 label="📥 Download Flagged Rows as CSV",
                 data=output.getvalue(),
-                file_name="flagged_texts_with_matches.csv",
+                file_name="flagged_texts_filtered.csv",
                 mime="text/csv"
             )
         else:
-            st.info("No flagged content found.")
+            st.info("✅ No flagged content found after applying exclusions.")
 else:
-    st.info("Upload a CSV file to begin.")
+    st.info("⬆️ Upload a CSV file to begin.")
