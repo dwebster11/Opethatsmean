@@ -33,7 +33,7 @@ default_flagged_words = [
     "demotard", "anal", "anus", "bastard", "blowjob", "blow job", "buttplug", "cock", "cocks",
     "coon", "dyke", "fellate", "fudgepacker", "fudge packer", "homo", "homos", "horny", "kike",
     "muff", "pussy", "pussies", "smegma", "spunk", "whores", "tit", "prick", "pricks", "jizz", 
-    "white power", "sodomize"
+    "white power", "sodomize", "king trump", "trannie", "makeamericagreatagain", "
     
 ]
 
