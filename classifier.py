@@ -32,6 +32,11 @@ default_flagged_words = [
     "die", "cunty", "kill yourself", "soros", "leftist", "leftists"
 ]
 
+# --- NEW: Default excluded words/emojis ---
+default_excluded_words = [
+    "emphasized", "disliked", "liked", "👍", "loved", "questioned"
+]
+
 # --- Sidebar word management ---
 st.sidebar.header("⚙️ Manage Word Lists")
 
@@ -39,8 +44,14 @@ st.sidebar.header("⚙️ Manage Word Lists")
 if "flagged_words" not in st.session_state:
     st.session_state.flagged_words = default_flagged_words.copy()
 
+# Combine any user-specified excluded words with the default ones
 if "excluded_words" not in st.session_state:
-    st.session_state.excluded_words = []
+    st.session_state.excluded_words = default_excluded_words.copy()
+else:
+    # Ensure defaults are always included, even if user edits list
+    st.session_state.excluded_words = sorted(
+        set(st.session_state.excluded_words + default_excluded_words)
+    )
 
 # --- Manage Flagged Words ---
 with st.sidebar.expander("🚨 Manage Flagged Words"):
@@ -65,7 +76,8 @@ with st.sidebar.expander("❎ Manage Excluded Words"):
     )
     if st.button("Update Excluded List"):
         new_list = [w.strip().lower() for w in excluded_text.split(",") if w.strip()]
-        st.session_state.excluded_words = sorted(set(new_list))
+        # Always include the default excluded words no matter what
+        st.session_state.excluded_words = sorted(set(new_list + default_excluded_words))
         st.success("✅ Excluded word list updated.")
 
 st.sidebar.write(f"Excluded terms: **{len(st.session_state.excluded_words)}**")
